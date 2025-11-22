@@ -2,10 +2,13 @@ import apprise
 import os
 from flask import Flask, request
 
-if 'NOTIFICATION_URLS' in os.environ.keys():
-    urls = os.environ['NOTIFICATION_URLS']
-elif 'NOTIFICATION_URLS_FILE' in os.environ.keys():
-    with open(os.environ['NOTIFICATION_URLS_FILE'], 'r') as secrets_file:
+envURL = os.environ.get('NOTIFICATION_URLS')
+envURLFile = os.environ.get('NOTIFICATION_URLS_FILE')
+
+urls = envURL
+
+if not envURL and envURLFile and os.path.exists(envURLFile):
+    with open(envURLFile, 'r') as secrets_file:
         urls = secrets_file.read()
 
 apobj = apprise.Apprise()
@@ -16,7 +19,7 @@ app = Flask(__name__)
 lastMessages = dict()
 
 @app.route('/', methods=['POST'])
-def hello_world():
+def notify_post():
     data = request.get_json(force=True)
     send = True
     if 'id' in data:
